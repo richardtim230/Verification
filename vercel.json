@@ -1,0 +1,39 @@
+{
+  "rewrites": [
+    { "source": "/verify-email", "destination": "/verify-email.html" },
+    { "source": "/blogger-marketer-registration", "destination": "/blogger-reg.html" },
+    { "source": "/results", "destination": "/results.html" },
+    { "source": "/people", "destination": "/people.html" },
+    { "source": "/finance", "destination": "/finance.html" },
+        { "source": "/e-class", "destination": "/admin-cbt.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/result-summary", "destination": "/summary.html" },
+    { "source": "/mock-icthallb", "destination": "/mock.html" },
+    { "source": "/testsession", "destination": "/test.html" },
+    { "source": "/campus-news-update", "destination": "/blog-details.html" },
+        { "source": "/dashboard", "destination": "/buyer_dash.html" },
+            { "source": "/css-lecturemanual", "destination": "/wweeek2.html" },
+        { "source": "/MainStudentDashboard", "destination": "/student_dashoard.html" }
+    
+    
+  ],
+  "redirects": [
+    { "source": "/old-past-questions", "destination": "/past-questions", "permanent": true },
+    { "source": "/old-school-mock", "destination": "/school-mock", "permanent": true },
+    { "source": "/old-register-studentsApp", "destination": "/register-studentsApp", "permanent": true },
+    { "source": "/old-login-studentsApp", "destination": "/login-studentsApp", "permanent": true },
+    { "source": "/old-cbt-examoau", "destination": "/cbt-examoau", "permanent": true },
+
+    { "source": "/old-general-articles", "destination": "/general-articles", "permanent": true },
+    { "source": "/old-profile-menu", "destination": "/profile-menu", "permanent": true },
+    { "source": "/old-mock-icthallb", "destination": "/ict-hallb", "permanent": true },
+    { "source": "/old-result-summary", "destination": "/result-summary", "permanent": true },
+    { "source": "/old-advertisement", "destination": "/advertisement", "permanent": true },
+    { "source": "/old-testsession", "destination": "/testsession", "permanent": true },
+        { "source": "/old-student_dashoard.html", "destination": "/MainStudentDashboard", "permanent": true }
+      
+  ]
+
+
+}

@@ -1,0 +1,566 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ExamGuard International School| Portal Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts: Inter for body, Montserrat for headings -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Montserrat:wght@800&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1657a6;
+      --secondary: #f3f7fa;
+      --glass-bg: rgba(255,255,255,0.85);
+      --glass-border: rgba(255,255,255,0.32);
+      --accent: #17c3b2;
+      --error: #e74c3c;
+      --radius: 20px;
+      --shadow: 0 8px 32px 0 rgba(16, 57, 128, 0.10);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(120deg, #e6eefe 0%, #b2c6e6 100%);
+      min-height: 100vh;
+      color: #1b2330;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-page {
+      display: flex;
+      width: 90vw;
+      max-width: 1000px;
+      min-height: 80vh;
+      background: transparent;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .login-page .side {
+      flex: 1.1;
+      background: linear-gradient(135deg, #1657a6 75%, #17c3b2 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 38px 10px;
+      position: relative;
+      min-width: 260px;
+    }
+    .login-page .side .logo {
+      width: 92px;
+      height: 92px;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 2px 24px rgba(0,0,0,.05);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .login-page .side h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.55rem;
+      margin-bottom: 18px;
+      letter-spacing: 1.2px;
+      text-shadow: 0 2px 9px rgba(10,50,150,0.09);
+      text-align: center;
+    }
+    .login-page .side .info-row {
+      font-size: 1.07rem;
+      margin-bottom: 10px;
+      opacity: 0.98;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+    .login-page .side .socials {
+      position: absolute;
+      left: 18px;
+      bottom: 22px;
+      display: flex;
+      gap: 16px;
+    }
+    .login-page .side .socials a {
+      color: #fff;
+      font-size: 1.25rem;
+      opacity: 0.85;
+      transition: color .15s, opacity .15s;
+      border-radius: 100px;
+      padding: 2px 5px;
+    }
+    .login-page .side .socials a:hover {
+      opacity: 1;
+      color: var(--accent);
+      background: rgba(255,255,255,0.15);
+    }
+    .login-page .side .admission-btn {
+      position: absolute;
+      top: 28px;
+      right: 30px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 22px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background .16s;
+      box-shadow: 0 1px 7px rgba(16, 57, 128, 0.07);
+    }
+    .login-page .side .admission-btn:hover {
+      background: #0fa393;
+    }
+    .login-page .side .art {
+      position: absolute;
+      bottom: 38px;
+      right: 18px;
+      width: 94px;
+      opacity: 0.96;
+      pointer-events: none;
+      border-radius: 19px;
+      box-shadow: 0 2px 18px rgba(0,0,0,.11);
+    }
+
+    .login-page .form-section {
+      flex: 1.4;
+      background: var(--secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .glass-card {
+      background: var(--glass-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--glass-border);
+      padding: 38px 36px 33px 36px;
+      max-width: 380px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+      backdrop-filter: blur(6px);
+      animation: fadeinup .7s cubic-bezier(.39,.58,.57,1.01) 1;
+    }
+    @keyframes fadeinup {
+      from { opacity:0; transform:translateY(60px);}
+      to   { opacity:1; transform:none;}
+    }
+    .glass-card .icon {
+      font-size: 2.6rem;
+      color: var(--primary);
+      margin-bottom: 8px;
+      margin-top: 2px;
+      text-align: center;
+      width: 100%;
+      display: block;
+      opacity: 0.97;
+    }
+    .glass-card h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.32rem;
+      letter-spacing: 1px;
+      margin-bottom: 23px;
+      color: #1b2330;
+      text-align: center;
+    }
+    .glass-card label {
+      font-size: 1.06rem;
+      font-weight: 600;
+      color: #1657a6;
+      margin-bottom: 2px;
+      margin-top: 10px;
+      display: block;
+    }
+    .glass-card input[type="text"], .glass-card input[type="password"] {
+      width: 100%;
+      font-size: 1.09rem;
+      border-radius: 10px;
+      border: 1.5px solid #dbe2ee;
+      padding: 13px 12px;
+      background: #f3f6fc;
+      margin-bottom: 14px;
+      margin-top: 2px;
+      box-sizing: border-box;
+      transition: border .16s;
+    }
+    .glass-card input:focus {
+      outline: none;
+      border-color: #1657a6;
+      background: #f0f5fd;
+    }
+    .input-group {
+      position: relative;
+      width: 100%;
+    }
+    .input-group .toggle-pw {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #a3b7ce;
+      font-size: 1.13rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      z-index: 2;
+      outline: none;
+    }
+    .form-check {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 1.01rem;
+      width: 100%;
+    }
+    .form-check-input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+    }
+    .btn-primary {
+      padding: 13px 0;
+      background: #1657a6;
+      border-radius: 9px;
+      border: none;
+      font-size: 1.12rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #fff;
+      margin-bottom: 13px;
+      margin-top: 6px;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(22,87,166,0.13);
+      transition: background .18s, box-shadow .18s;
+      cursor: pointer;
+    }
+    .btn-primary:active, .btn-primary:focus { background: #174e8b; }
+    .row-links {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 13px;
+      font-size: 1.02rem;
+      gap: 16px;
+      width: 100%;
+    }
+    .row-links a {
+      color: #1657a6;
+      text-decoration: none;
+      font-weight: 500;
+      opacity: 0.93;
+      transition: opacity .15s;
+    }
+    .row-links a:hover { opacity: 1; text-decoration: underline; }
+    .or-divider {
+      display: flex;
+      align-items: center;
+      margin: 18px 0 12px 0;
+      width: 100%;
+    }
+    .or-divider span {
+      margin: 0 10px;
+      color: #aaa;
+      font-size: 1.01rem;
+      font-weight: 600;
+    }
+    .or-divider:before, .or-divider:after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e1e6ee;
+    }
+    .google-btn {
+      background: #fff;
+      color: #444;
+      border: 1.3px solid #d1d8e0;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 11px 0;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background .15s, box-shadow .18s;
+      box-shadow: 0 2px 8px rgba(54, 97, 168, 0.06);
+      width: 100%;
+    }
+    .google-btn:hover {
+      background: #f5f5fa;
+      box-shadow: 0 5px 16px rgba(54, 97, 168, 0.11);
+    }
+    .support-link {
+      text-align: center;
+      margin-top: 13px;
+      font-size: 1.02rem;
+      color: #1657a6;
+      width: 100%;
+      font-weight: 500;
+    }
+    .support-link a {
+      color: #1657a6;
+      text-decoration: none;
+      font-weight: 500;
+      transition: text-decoration .15s;
+    }
+    .support-link a:hover { text-decoration: underline; }
+    #spinner {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+      width: 100%;
+    }
+    /* Side is hidden on mobile, only the card is shown and larger */
+    @media (max-width: 700px) {
+      .login-page {
+        flex-direction: column;
+        width: 100vw;
+        min-height: 100vh;
+        box-shadow: none;
+        border-radius: 0;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-page .side {
+        display: none !important;
+      }
+      .login-page .form-section {
+        width: 100vw;
+        min-width: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+      }
+      .glass-card {
+        max-width: 99vw;
+        width: 97vw;
+        padding: 32px 5vw 28px 5vw;
+        box-shadow: 0 8px 32px 0 rgba(16, 57, 128, 0.10);
+        border-radius: 22px;
+        margin: 0 auto;
+      }
+    }
+    @media (max-width: 430px) {
+      .glass-card { padding: 8vw 2vw 8vw 2vw; }
+      .glass-card h2 { font-size: 1.09rem; }
+    }
+    @media (max-width: 340px) {
+      .glass-card { padding: 5vw 1vw 5vw 1vw; }
+      .glass-card h2 { font-size: 0.98rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <!-- Side Information (hidden on mobile) -->
+    <div class="side">
+      <button class="admission-btn" onclick="window.location.href='application.html'">Admission</button>
+      <div class="logo">
+        <img src="mainlogo.png" alt="School Logo" style="width:100%;height:100%;">
+      </div>
+      <h1>EXAMGUARD INTERNATIONAL SCHOOL</h1>
+      <div class="info-row">
+        <i class="fa fa-envelope"></i>
+        richardexam6@gmail.com
+      </div>
+      <div class="info-row">
+        <i class="fa fa-phone"></i>
+        09070962822
+      </div>
+      <div class="socials">
+        <a href="https://facebook.com" target="_blank" title="Facebook"><i class="fab fa-facebook-square"></i></a>
+        <a href="https://twitter.com" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="https://instagram.com" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+      </div>
+      <img class="art" src="https://img.icons8.com/fluency/96/000000/graduation-cap.png" alt="Decorative Art">
+    </div>
+    <!-- Login Glass Card -->
+    <div class="form-section">
+      <div class="glass-card">
+        <div class="icon">
+          <i class="fa fa-user-shield"></i>
+        </div>
+        <h2>Portal Login</h2>
+        <form class="login-form" autocomplete="on">
+          <label for="email">E-Mail or Reg. No.</label>
+          <input type="text" id="email" name="email" autocomplete="username" placeholder="Enter your email or registration number" required>
+          <div class="input-group mb-2">
+            <label for="password">Password / Access Code</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Enter your password" required>
+            <button type="button" class="toggle-pw" tabindex="-1" onclick="togglePw()"><i class="fa fa-eye"></i></button>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="keepLoggedIn">
+            <label class="form-check-label" for="keepLoggedIn">
+              Keep me logged on
+            </label>
+          </div>
+          <button type="submit" class="btn-primary">SIGN IN</button>
+          <div class="row-links">
+            <a href="#">Forgot Password?</a>
+            <a href="application.html">Don't Have Account?</a>
+          </div>
+          <div class="or-divider"><span>OR</span></div>
+          <button type="button" class="google-btn" onclick="alert('Coming soon!')">
+            <img src="https://www.google.com/images/branding/googleg/2x/googleg_standard_color_18dp.png" alt="Google" style="height:20px;margin-bottom:2px;">
+            Sign in with Google
+          </button>
+          <div id="spinner">
+            <i class="fa fa-spinner fa-spin" style="font-size: 1.5rem; color: #1657a6;"></i>
+          </div>
+        </form>
+        <div class="support-link">
+          <a href="#">How do I access online classes?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+    // Password toggle
+    window.togglePw = function() {
+      const pwInput = document.getElementById('password');
+      const pwToggle = document.querySelector('.toggle-pw i');
+      if (pwInput.type === "password") {
+        pwInput.type = "text";
+        pwToggle.classList.remove('fa-eye');
+        pwToggle.classList.add('fa-eye-slash');
+      } else {
+        pwInput.type = "password";
+        pwToggle.classList.remove('fa-eye-slash');
+        pwToggle.classList.add('fa-eye');
+      }
+    };
+
+    // Login logic
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.querySelector('.login-form');
+      if (!loginForm) {
+        console.error('No form with class .login-form found!');
+        return;
+      }
+
+      loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const emailOrReg = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const spinner = document.getElementById('spinner');
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+        // Reset UI states
+        if (spinner) spinner.style.display = 'none';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+        }
+
+        if (!emailOrReg || !password) {
+          alert('Please fill in all fields.');
+          return;
+        }
+
+        const isEmail = emailOrReg.includes('@');
+        const body = isEmail
+          ? { email: emailOrReg, password }
+          : { regNo: emailOrReg, password };
+
+        if (spinner) spinner.style.display = 'block';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.6';
+        }
+
+        try {
+          const res = await fetch('https://examguard-8rxe.onrender.com/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (err) {
+            alert('Server error: Invalid JSON response');
+            return;
+          }
+
+          if (res.ok && data?.token) {
+            // Store JWT token in multiple keys for compatibility
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('authToken', data.token);           // ← Add this
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('superadmin_token', data.token);
+            localStorage.setItem('student_token', data.token);
+            
+            // Also store user info if needed
+            if (data.user) {
+              localStorage.setItem('user', JSON.stringify(data.user));
+              localStorage.setItem('userRole', data.user.role);
+            }
+
+            console.log('✓ Login successful for role:', data.user?.role);
+
+            // Role-based redirect (robust and extensible)
+            const role = data.user?.role?.toLowerCase();
+            if (role === 'superadmin') {
+              window.location.href = 'admin.html';
+            } else if (role === 'admin') {
+              window.location.href = 'gen-sec.html';
+            } else if (role === 'teacher') {
+              window.location.href = 'teacher-dashboard.html';
+            }
+            else if (role === 'staff') {
+              window.location.href = 'gen-sec.html';
+            }
+              else if (role === 'parent') {
+              window.location.href = 'parent-dashboard.html';
+            }
+            else if (role === 'student') {
+              window.location.href = 'student-dashboard.html';
+            } else {
+              // Fallback: redirect to a general dashboard or error page
+              window.location.href = '/';
+            }
+          } else {
+            alert(data?.error || 'Invalid login credentials');
+          }
+        } catch (err) {
+          console.error('[Login Error]', err);
+          alert('Network or server error: ' + err.message);
+        } finally {
+          if (spinner) spinner.style.display = 'none';
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

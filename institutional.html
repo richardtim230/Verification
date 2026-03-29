@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verify Student Report | ExamGuard Institution Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="institutional.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="mainlogo.png" alt="ExamGuard" class="sidebar-logo">
+        <div class="sidebar-brand">
+          <h3>ExamGuard Schools Ecosystem</h3>
+          <p>Report Card Verification Portal</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="switchPage('verify', this)">
+          <i class="fas fa-search"></i>
+          <span>Verify Report</span>
+        </div>
+
+        <div class="nav-item" onclick="switchPage('history', this)">
+          <i class="fas fa-history"></i>
+          <span>Verification History</span>
+          <div class="nav-badge" id="historyBadge">0</div>
+        </div>
+
+        <div class="nav-item" onclick="openChatModal()">
+          <i class="fas fa-comments"></i>
+          <span>Live Chat</span>
+          <div class="nav-badge" id="chatBadge" style="display: none;">0</div>
+        </div>
+
+        <div class="nav-item" onclick="openTicketsModal()">
+          <i class="fas fa-ticket-alt"></i>
+          <span>Support Tickets</span>
+          <div class="nav-badge" id="ticketBadge" style="display: none;">0</div>
+        </div>
+
+        <div class="nav-item" onclick="openContactModal()">
+          <i class="fas fa-envelope"></i>
+          <span>Contact Schools</span>
+        </div>
+
+        <div class="nav-item" onclick="openSettingsModal()">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <img src="avatar.jpg" alt="User" style="object-fit: cover;">
+        <div class="sidebar-footer-info">
+          <p id="userNameSidebar">ExamGuard Officer</p>
+          <span id="userRoleSidebar">Institution</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <button class="header-btn" onclick="toggleSidebar()" style="display: none;" id="toggleSidebarBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="header-title">
+          <h1 id="pageTitle">Verify Student Report</h1>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button class="header-btn" onclick="openNotifications()">
+          <i class="fas fa-bell"></i>
+          Notifications
+          <span id="notificationBadge" style="background: var(--danger); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin-left: 4px;">0</span>
+        </button>
+        <img src="avatar.jpg" alt="User Avatar" class="header-avatar">
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <div class="main-content">
+
+        <!-- VERIFY PAGE -->
+        <div id="verifyPage" style="display: block;">
+          <div class="two-column">
+
+            <!-- LEFT COLUMN - FORM -->
+            <div class="form-column">
+              <div class="form-card">
+                <div class="form-header">
+                  <div class="form-header-icon">
+                    <i class="fas fa-search"></i>
+                  </div>
+                  <div class="form-header-text">
+                    <h2>Verify Student Report</h2>
+                    <p>Enter student details to retrieve their academic record</p>
+                  </div>
+                </div>
+
+                <!-- Alerts -->
+                <div class="alert alert-success" id="successAlert">
+                  <div class="alert-icon"><i class="fas fa-check-circle"></i></div>
+                  <div class="alert-content">
+                    <div class="alert-title">Success</div>
+                    <div class="alert-message" id="successMessage"></div>
+                  </div>
+                </div>
+
+                <div class="alert alert-error" id="errorAlert">
+                  <div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+                  <div class="alert-content">
+                    <div class="alert-title">Error</div>
+                    <div class="alert-message" id="errorMessage"></div>
+                  </div>
+                </div>
+
+                <div class="alert alert-warning" id="warningAlert">
+                  <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                  <div class="alert-content">
+                    <div class="alert-title">Warning</div>
+                    <div class="alert-message" id="warningMessage"></div>
+                  </div>
+                </div>
+
+                <!-- FORM -->
+                <form id="verificationForm" onsubmit="handleVerification(event)">
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      School Name <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="schoolName" required onchange="updateSchoolInfo()">
+                      <option value="">Select School</option>
+                    </select>
+                    <div class="form-hint">The school where the student is studying</div>
+                    <div class="form-error" id="schoolName-error"></div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">
+                        Registration Number <span class="required">*</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        class="form-input" 
+                        id="regNo" 
+                        placeholder="e.g., EG-2024-001234"
+                        required
+                        autocomplete="off"
+                      >
+                      <div class="form-hint">Found on student's ID card</div>
+                      <div class="form-error" id="regNo-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        Scratch Card Code <span class="required">*</span>
+                      </label>
+                      <input 
+                        type="password" 
+                        class="form-input" 
+                        id="scratchCard" 
+                        placeholder="••••••••••"
+                        required
+                        autocomplete="off"
+                      >
+                      <div class="form-hint">Verification code on report</div>
+                      <div class="form-error" id="scratchCard-error"></div>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">
+                        Session <span class="required">*</span>
+                      </label>
+                      <select class="form-select" id="session" required>
+                        <option value="">Select Session</option>
+                      </select>
+                      <div class="form-error" id="session-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        Term <span class="required">*</span>
+                      </label>
+                      <select class="form-select" id="term" required>
+                        <option value="">Select Term</option>
+                        
+                      </select>
+                      <div class="form-error" id="term-error"></div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Class <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="classLevel" required>
+                      <option value="">Select Class</option>
+                      <optgroup label="Primary">
+                        <option value="P1">Primary 1</option>
+                        <option value="P2">Primary 2</option>
+                        <option value="P3">Primary 3</option>
+                        <option value="P4">Primary 4</option>
+                        <option value="P5">Primary 5</option>
+                        <option value="P6">Primary 6</option>
+                      </optgroup>
+                      <optgroup label="Secondary">
+                        <option value="JSS1">JSS1</option>
+                        <option value="JSS2">JSS2</option>
+                        <option value="JSS3">JSS3</option>
+                        <option value="SS1">SS1</option>
+                        <option value="SS2">SS2</option>
+                        <option value="SS3">SS3</option>
+                      </optgroup>
+                    </select>
+                    <div class="form-error" id="classLevel-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Purpose of Verification <span class="required">*</span>
+                    </label>
+                    <select class="form-select" id="verificationPurpose" required>
+                      <option value="">Select Purpose</option>
+                      <option value="admission">University/School Admission</option>
+                      <option value="employment">Employment Verification</option>
+                      <option value="scholarship">Scholarship Application</option>
+                      <option value="transfer">School Transfer</option>
+                      <option value="government">Government Registration</option>
+                      <option value="other">Other Purpose</option>
+                    </select>
+                    <div class="form-error" id="verificationPurpose-error"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      Institution/Organization <span class="required">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-input" 
+                      id="institutionName" 
+                      placeholder="Your institution or organization name"
+                      required
+                      autocomplete="off"
+                    >
+                    <div class="form-hint">For audit and verification records</div>
+                    <div class="form-error" id="institutionName-error"></div>
+                  </div>
+
+                  <button type="submit" class="form-submit" id="submitBtn">
+                    <i class="fas fa-check-circle"></i> Verify Report
+                  </button>
+
+                  <p style="text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-light);">
+                    <i class="fas fa-lock"></i> All data is encrypted and secure
+                  </p>
+                </form>
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN - REPORT DISPLAY -->
+            <div class="report-column">
+              <!-- Empty State -->
+              <div class="report-empty" id="reportEmpty">
+                <div class="report-empty-icon">
+                  <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>No Report Selected</h3>
+                <p>Enter student details on the left and click "Verify Report" to view their academic record</p>
+              </div>
+
+              <!-- Report Card (Hidden by default) -->
+              <div class="report-card" id="reportCard" style="display: none;">
+
+                <!-- Report Header -->
+                <div class="report-header">
+                  <div class="report-header-info">
+                    <h1 class="report-student-name" id="reportStudentName">Student Name</h1>
+                    <div class="report-student-meta">
+                      <div class="report-student-meta-item">
+                        <i class="fas fa-id-card"></i>
+                        <span id="reportRegNo">REG: N/A</span>
+                      </div>
+                      <div class="report-student-meta-item">
+                        <i class="fas fa-school"></i>
+                        <span id="reportSchoolName">School: N/A</span>
+                      </div>
+                      <div class="report-student-meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span id="reportYear">Session: N/A</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="verification-badge verification-verified" id="verificationBadge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verified</span>
+                  </div>
+                </div>
+
+                <!-- Report Body -->
+                <div class="report-body">
+
+                  <!-- Academic Summary -->
+                  <div class="report-section">
+                    <h3 class="report-section-title">
+                      <i class="fas fa-chart-bar"></i> Academic Summary
+                    </h3>
+                    <div class="info-grid">
+                      <div class="info-item">
+                        <div class="info-item-label">Term</div>
+                        <div class="info-item-value" id="reportTerm">N/A</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Class</div>
+                        <div class="info-item-value" id="reportClass">N/A</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Total Score</div>
+                        <div class="info-item-value" id="reportTotalScore">0</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Average Score</div>
+                        <div class="info-item-value" id="reportAverageScore">0.00</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Highest Score</div>
+                        <div class="info-item-value" id="reportHighestScore">0</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Overall Grade</div>
+                        <div class="info-item-value grade" id="reportGrade">-</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Subject Breakdown -->
+                  <div class="report-section">
+                    <h3 class="report-section-title">
+                      <i class="fas fa-book"></i> Subject Performance
+                    </h3>
+                    <div style="overflow-x: auto;">
+                      <table class="subjects-table">
+                        <thead>
+                          <tr>
+                            <th>Subject</th>
+                            <th>CA1</th>
+                            <th>CA2</th>
+                            <th>Midterm</th>
+                            <th>Exam</th>
+                            <th>Total</th>
+                            <th>Grade</th>
+                            
+                          </tr>
+                        </thead>
+                        <tbody id="subjectsTableBody">
+                          <tr>
+                            <td colspan="8" style="text-align: center; padding: 20px;">No subject data</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+
+                  <!-- Teacher's Comments -->
+                  <div class="report-section">
+                    <h3 class="report-section-title">
+                      <i class="fas fa-chalkboard-user"></i> Teacher's Comments
+                    </h3>
+                    <div class="review-box">
+                      <div class="review-box-label">
+                        <i class="fas fa-quote-left"></i> Class Teacher
+                      </div>
+                      <div class="review-box-content" id="teacherComment">
+                        [Comment will appear here]
+                      </div>
+                      <div class="review-box-author" id="teacherName">Teacher Name</div>
+                    </div>
+                  </div>
+
+                  <!-- Principal's Remark -->
+                  <div class="report-section">
+                    <h3 class="report-section-title">
+                      <i class="fas fa-crown"></i> Principal's Remark
+                    </h3>
+                    <div class="review-box" style="background: linear-gradient(135deg, #f0fdf4 0%, #f0fdf4 100%); border-color: #86efac;">
+                      <div class="review-box-label" style="color: #166534;">
+                        <i class="fas fa-quote-left"></i> Principal's Office
+                      </div>
+                      <div class="review-box-content" id="principalRemark">
+                        [Remark will appear here]
+                      </div>
+                      <div class="review-box-author" id="principalName">Principal Name</div>
+                    </div>
+                  </div>
+
+                  <!-- Verification Info -->
+                  <div class="report-section">
+                    <h3 class="report-section-title">
+                      <i class="fas fa-shield-alt"></i> Verification Information
+                    </h3>
+                    <div class="info-grid">
+                      <div class="info-item">
+                        <div class="info-item-label">Verification Code</div>
+                        <div class="info-item-value" style="font-family: 'Courier New', monospace; font-size: 0.9rem;" id="reportVerificationCode">VER-000000</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Issue Date</div>
+                        <div class="info-item-value" id="reportIssueDate">N/A</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-item-label">Verification Status</div>
+                        <div class="info-item-value" id="reportVerificationStatus" style="color: #16a34a;">Verified ✓</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="report-actions">
+                    <button class="action-btn print" onclick="printReport()">
+                      <i class="fas fa-print"></i> Print Report
+                    </button>
+                    <button class="action-btn download" onclick="downloadReport()">
+                      <i class="fas fa-download"></i> Download PDF
+                    </button>
+                    <button class="action-btn share" onclick="shareReport()">
+                      <i class="fas fa-share-alt"></i> Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY PAGE -->
+        <div id="historyPage" style="display: none;">
+          <div class="form-card">
+            <div class="form-header">
+              <div class="form-header-icon">
+                <i class="fas fa-history"></i>
+              </div>
+              <div class="form-header-text">
+                <h2>Verification History</h2>
+                <p>View your past verification requests and results</p>
+              </div>
+            </div>
+
+            <div id="historyContainer" style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- History items will be populated here -->
+            </div>
+
+            <div id="emptyHistory" style="text-align: center; padding: 40px; color: var(--text-light);">
+              <i class="fas fa-inbox" style="font-size: 3rem; color: var(--accent-light); margin-bottom: 16px; display: block;"></i>
+              <p>No verification history yet</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <!-- CHAT MODAL -->
+    <div class="modal" id="chatModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-comments"></i> Live Chat Support
+          </h3>
+          <button class="modal-close" onclick="closeChatModal()">&times;</button>
+        </div>
+
+        <div class="modal-body" id="chatMessages" style="max-height: 400px; overflow-y: auto;">
+          <div class="chat-message">
+            <div class="chat-avatar">E</div>
+            <div class="chat-bubble">
+              Hello! How can I assist you with your verification today?
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <input 
+            type="text" 
+            id="chatInput" 
+            placeholder="Type your message..." 
+            style="flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', Arial, sans-serif;"
+          >
+          <button onclick="sendMessage()" class="header-btn" style="margin: 0;">
+            <i class="fas fa-paper-plane"></i> Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TICKETS MODAL -->
+    <div class="modal" id="ticketsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-ticket-alt"></i> Support Tickets
+          </h3>
+          <button class="modal-close" onclick="closeTicketsModal()">&times;</button>
+        </div>
+
+        <div class="modal-body" id="ticketsContainer" style="max-height: 400px; overflow-y: auto;">
+          <!-- Tickets will be populated here -->
+        </div>
+
+        <div class="modal-footer">
+          <button onclick="closeTicketsModal()" class="header-btn">Close</button>
+          <button onclick="openCreateTicketModal()" class="header-btn" style="background: linear-gradient(135deg, var(--accent), var(--primary)); color: #fff; border: none;">
+            <i class="fas fa-plus"></i> New Ticket
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE TICKET MODAL -->
+    <div class="modal" id="createTicketModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-plus-circle"></i> Create Support Ticket
+          </h3>
+          <button class="modal-close" onclick="closeCreateTicketModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <form id="ticketForm" onsubmit="submitTicket(event)">
+            <div class="form-group-modal">
+              <label>Subject <span class="required">*</span></label>
+              <input 
+                type="text" 
+                id="ticketSubject" 
+                placeholder="Brief subject of your issue"
+                required
+              >
+            </div>
+
+            <div class="form-group-modal">
+              <label>Category <span class="required">*</span></label>
+              <select id="ticketCategory" required>
+                <option value="">Select Category</option>
+                <option value="verification">Verification Issue</option>
+                <option value="account">Account Issue</option>
+                <option value="technical">Technical Problem</option>
+                <option value="billing">Billing</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group-modal">
+              <label>Priority <span class="required">*</span></label>
+              <select id="ticketPriority" required>
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div class="form-group-modal">
+              <label>Description <span class="required">*</span></label>
+              <textarea 
+                id="ticketDescription" 
+                placeholder="Describe your issue in detail"
+                required
+              ></textarea>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+              <button type="button" onclick="closeCreateTicketModal()" class="header-btn">Cancel</button>
+              <button type="submit" class="header-btn" style="background: linear-gradient(135deg, var(--accent), var(--primary)); color: #fff; border: none; flex: 1;">
+                <i class="fas fa-check"></i> Submit Ticket
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT SCHOOLS MODAL -->
+    <div class="modal" id="contactModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-envelope"></i> Contact Schools
+          </h3>
+          <button class="modal-close" onclick="closeContactModal()">&times;</button>
+        </div>
+
+        <div class="modal-body" id="schoolsContactList" style="max-height: 400px; overflow-y: auto;">
+          <!-- Schools list will be populated here -->
+        </div>
+
+        <div class="modal-footer">
+          <button onclick="closeContactModal()" class="header-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal" id="settingsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fas fa-cog"></i> Settings
+          </h3>
+          <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group-modal">
+            <label>Institution Name</label>
+            <input 
+              type="text" 
+              id="settingsInstitution" 
+              placeholder="Your institution name"
+            >
+          </div>
+
+          <div class="form-group-modal">
+            <label>Email Address</label>
+            <input 
+              type="email" 
+              id="settingsEmail" 
+              placeholder="Your email address"
+            >
+          </div>
+
+          <div class="form-group-modal">
+            <label>Phone Number</label>
+            <input 
+              type="tel" 
+              id="settingsPhone" 
+              placeholder="Your phone number"
+            >
+          </div>
+
+          <div class="form-group-modal">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="notificationsEnabled" checked>
+              <span>Enable Email Notifications</span>
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <button type="button" onclick="closeSettingsModal()" class="header-btn">Cancel</button>
+            <button type="button" onclick="saveSettings()" class="header-btn" style="background: linear-gradient(135deg, var(--accent), var(--primary)); color: #fff; border: none; flex: 1;">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="institutional.js"></script>
+</body>
+</html>

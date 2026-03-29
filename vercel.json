@@ -2,7 +2,7 @@
   "rewrites": [
     { "source": "/verify-email", "destination": "/verify-email.html" },
     { "source": "/blogger-marketer-registration", "destination": "/blogger-reg.html" },
-    { "source": "/results", "destination": "/results.html" },
+    { "source": "/verify", "destination": "/institutional.html" },
     { "source": "/people", "destination": "/people.html" },
     { "source": "/finance", "destination": "/finance.html" },
         { "source": "/e-class", "destination": "/admin-cbt.html" },

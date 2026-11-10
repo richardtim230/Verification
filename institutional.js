@@ -66,27 +66,21 @@
       });
     }
 
-    // ============ LOAD INITIAL DATA ============
-    async function loadInitialData() {
-      try {
-        showLoading(true);
-        
-        // Load schools
-        await loadSchools();
-        
-        // Load sessions
-        await loadSessions();
-        
-        // Load verification history
-        await loadVerificationHistory();
-        
-        showLoading(false);
-      } catch (error) {
-        console.error('Error loading initial data:', error);
-        showLoading(false);
-      }
-    }
+   async function loadInitialData() {
+  try {
+    showLoading(true);
 
+    await loadSchools();
+    await loadSessions();
+    await prefillVerificationFormFromUrl();
+    await loadVerificationHistory();
+
+    showLoading(false);
+  } catch (error) {
+    console.error('Error loading initial data:', error);
+    showLoading(false);
+  }
+}
     async function loadSchools() {
       try {
         const response = await fetch(`${API_BASE_URL}/api/schools`, {
@@ -125,7 +119,118 @@
         schoolSelect.appendChild(option);
       });
     }
+function normalizeQueryValue(value) {
+  return String(value || '').trim().toLowerCase();
+}
 
+function findMatchingItem(items, candidates) {
+  const values = candidates
+    .filter(value => value !== undefined && value !== null && String(value).trim())
+    .map(normalizeQueryValue);
+
+  return items.find(item => {
+    const itemValues = [
+      item._id,
+      item.id,
+      item.schoolId,
+      item.publicSchoolId,
+      item.code,
+      item.name,
+      item.schoolName
+    ]
+      .filter(value => value !== undefined && value !== null && String(value).trim())
+      .map(normalizeQueryValue);
+
+    return values.some(value => itemValues.includes(value));
+  });
+}
+
+function setSelectToItem(selectId, item, nameKeys = ['name']) {
+  const select = document.getElementById(selectId);
+  if (!select || !item) return false;
+
+  const itemId = item._id || item.id || item.schoolId;
+  const itemName = nameKeys.map(key => item[key]).find(Boolean);
+
+  const option = Array.from(select.options).find(option =>
+    normalizeQueryValue(option.value) === normalizeQueryValue(itemId) ||
+    normalizeQueryValue(option.textContent) === normalizeQueryValue(itemName) ||
+    normalizeQueryValue(option.dataset.termName) === normalizeQueryValue(itemName) ||
+    normalizeQueryValue(option.dataset.className) === normalizeQueryValue(itemName)
+  );
+
+  if (!option) return false;
+  select.value = option.value;
+  return true;
+}
+
+async function prefillVerificationFormFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+
+  const schoolId = params.get('schoolId');
+  const schoolName = params.get('schoolName');
+  const regNo = params.get('regNo');
+  const sessionValue = params.get('session') || params.get('sessionId');
+  const termValue = params.get('term') || params.get('termName') || params.get('termId');
+  const classValue =
+    params.get('class') ||
+    params.get('className') ||
+    params.get('classLevel') ||
+    params.get('classLevelId');
+
+  if (schoolId || schoolName) {
+    const school = findMatchingItem(schools, [schoolId, schoolName]);
+
+    if (school) {
+      const schoolSelect = document.getElementById('schoolName');
+      schoolSelect.value = school._id || school.id;
+      updateSchoolInfo();
+    }
+  }
+
+  if (regNo) {
+    document.getElementById('regNo').value = regNo.trim();
+  }
+
+  if (sessionValue) {
+    const session = findMatchingItem(sessions, [sessionValue]);
+
+    if (session && setSelectToItem('session', session)) {
+      const sessionId = session._id || session.id;
+      await Promise.all([
+        loadTerms(sessionId),
+        loadClassLevels(sessionId)
+      ]);
+
+      if (termValue) {
+        const term = findMatchingItem(terms, [termValue]);
+        if (term) setSelectToItem('term', term);
+      }
+
+      if (classValue) {
+        const classLevel = findMatchingItem(classLevels, [classValue]);
+        if (classLevel) setSelectToItem('classLevel', classLevel);
+      }
+    }
+  }
+
+  const purpose = params.get('verificationPurpose');
+  if (purpose) {
+    const purposeSelect = document.getElementById('verificationPurpose');
+    if (purposeSelect) {
+      const option = Array.from(purposeSelect.options).find(item =>
+        normalizeQueryValue(item.value) === normalizeQueryValue(purpose) ||
+        normalizeQueryValue(item.textContent) === normalizeQueryValue(purpose)
+      );
+      if (option) purposeSelect.value = option.value;
+    }
+  }
+
+  const institutionName = params.get('institutionName');
+  if (institutionName) {
+    document.getElementById('institutionName').value = institutionName;
+  }
+}
     async function loadSessions() {
       try {
         const response = await fetch(`${API_BASE_URL}/api/academics/sessions`, {

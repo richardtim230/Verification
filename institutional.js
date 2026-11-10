@@ -231,116 +231,41 @@ async function prefillVerificationFormFromUrl() {
     document.getElementById('institutionName').value = institutionName;
   }
 }
-    async function loadSessions() {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/academics/sessions`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+async function loadSessions() {
+  sessions = [
+    { id: '2025-2026', name: '2025-2026' }
+  ];
 
-        if (!response.ok) {
-          console.error('Sessions API Response:', response.status, response.statusText);
-          throw new Error(`Failed to load sessions: ${response.status}`);
-        }
-        
-        const responseData = await response.json();
-        console.log('Sessions Response:', responseData);
-        
-        // Extract sessions array from the response
-        let sessionsList = [];
-        
-        if (Array.isArray(responseData)) {
-          // Direct array response
-          sessionsList = responseData;
-        } else if (responseData.data && Array.isArray(responseData.data)) {
-          // Wrapped in data property
-          sessionsList = responseData.data;
-        } else if (responseData.sessions && Array.isArray(responseData.sessions)) {
-          // Wrapped in sessions property
-          sessionsList = responseData.sessions;
-        }
-        
-        console.log('Parsed Sessions:', sessionsList);
-        
-        sessions = sessionsList;
-        const sessionSelect = document.getElementById('session');
-        
-        if (!sessionSelect) {
-          console.error('Session select element not found');
-          return;
-        }
-        
-        // Clear existing options (keep the default)
-        while (sessionSelect.options.length > 1) {
-          sessionSelect.remove(1);
-        }
-        
-        if (sessionsList.length === 0) {
-          console.warn('No sessions returned from API');
-          return;
-        }
-        
-        sessionsList.forEach(session => {
-          const option = document.createElement('option');
-          option.value = session._id || session.id;
-          option.textContent = session.name;
-          sessionSelect.appendChild(option);
-          console.log('Added session option:', session.name);
-        });
-        
-      } catch (error) {
-        console.error('Error loading sessions:', error);
-        showAlert('warning', 'Could not load sessions. Please contact support.');
-      }
-    }
+  const sessionSelect = document.getElementById('session');
+  if (!sessionSelect) return;
 
-    async function loadTerms(sessionId) {
-      try {
-        if (!sessionId) {
-          // Clear terms if no session selected
-          terms = [];
-          populateTermDropdown();
-          return;
-        }
+  while (sessionSelect.options.length > 1) {
+    sessionSelect.remove(1);
+  }
 
-        const response = await fetch(`${API_BASE_URL}/api/academics/terms?sessionId=${sessionId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+  sessions.forEach(session => {
+    const option = document.createElement('option');
+    option.value = session.id;
+    option.textContent = session.name;
+    sessionSelect.appendChild(option);
+  });
+}
 
-        if (!response.ok) {
-          console.error('Terms API Response:', response.status, response.statusText);
-          throw new Error(`Failed to load terms: ${response.status}`);
-        }
-        
-        const responseData = await response.json();
-        console.log('Terms Response:', responseData);
-        
-        // Extract terms array from the response
-        let termsList = [];
-        
-        if (Array.isArray(responseData)) {
-          termsList = responseData;
-        } else if (responseData.data && Array.isArray(responseData.data)) {
-          termsList = responseData.data;
-        } else if (responseData.terms && Array.isArray(responseData.terms)) {
-          termsList = responseData.terms;
-        }
-        
-        console.log('Parsed Terms:', termsList);
-        
-        terms = termsList;
-        populateTermDropdown();
-        
-      } catch (error) {
-        console.error('Error loading terms:', error);
-        showAlert('warning', 'Could not load terms. Please contact support.');
-      }
-    }
+async function loadTerms(sessionId) {
+  if (!sessionId) {
+    terms = [];
+    populateTermDropdown();
+    return;
+  }
+
+  terms = [
+    { id: 'FIRST TERM', name: 'FIRST TERM' },
+    { id: 'SECOND TERM', name: 'SECOND TERM' },
+    { id: 'THIRD TERM', name: 'THIRD TERM' }
+  ];
+
+  populateTermDropdown();
+}
 
     function populateTermDropdown() {
       const termSelect = document.getElementById('term');

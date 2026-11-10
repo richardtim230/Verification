@@ -12,6 +12,9 @@
     let unreadMessages = 0;
     let unreadTickets = 0;
 
+    let sessionsRequestId = 0;
+    let termsRequestId = 0;
+
     // ============ INITIALIZATION ============
     document.addEventListener('DOMContentLoaded', function() {
       initializeApp();
@@ -36,7 +39,16 @@
 
     function setupEventListeners() {
       document.getElementById('verificationForm').addEventListener('submit', handleVerification);
-      
+
+      const schoolSelect = document.getElementById('schoolName');
+      if (schoolSelect) {
+        schoolSelect.addEventListener('change', function() {
+          const selectedSchoolId = this.value;
+          clearSessionTermClassSelections();
+          loadSessions(selectedSchoolId);
+        });
+      }
+
       // Clear form errors on input
       document.querySelectorAll('.form-input, .form-select').forEach(field => {
         field.addEventListener('input', function() {
@@ -50,8 +62,9 @@
 
       // Load terms and class levels when session is selected
       document.getElementById('session').addEventListener('change', function() {
-        loadTerms(this.value);
-        loadClassLevels(this.value);
+        const selectedSchoolId = document.getElementById('schoolName').value;
+        loadTerms(this.value, selectedSchoolId);
+        loadClassLevels(this.value, selectedSchoolId);
       });
     }
 
@@ -66,21 +79,19 @@
       });
     }
 
-   async function loadInitialData() {
-  try {
-    showLoading(true);
+    async function loadInitialData() {
+      try {
+        showLoading(true);
+        await loadSchools();
+        await prefillVerificationFormFromUrl();
+        await loadVerificationHistory();
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      } finally {
+        showLoading(false);
+      }
+    }
 
-    await loadSchools();
-    await loadSessions();
-    await prefillVerificationFormFromUrl();
-    await loadVerificationHistory();
-
-    showLoading(false);
-  } catch (error) {
-    console.error('Error loading initial data:', error);
-    showLoading(false);
-  }
-}
     async function loadSchools() {
       try {
         const response = await fetch(`${API_BASE_URL}/api/schools`, {
@@ -119,153 +130,278 @@
         schoolSelect.appendChild(option);
       });
     }
-function normalizeQueryValue(value) {
-  return String(value || '').trim().toLowerCase();
-}
 
-function findMatchingItem(items, candidates) {
-  const values = candidates
-    .filter(value => value !== undefined && value !== null && String(value).trim())
-    .map(normalizeQueryValue);
-
-  return items.find(item => {
-    const itemValues = [
-      item._id,
-      item.id,
-      item.schoolId,
-      item.publicSchoolId,
-      item.code,
-      item.name,
-      item.schoolName
-    ]
-      .filter(value => value !== undefined && value !== null && String(value).trim())
-      .map(normalizeQueryValue);
-
-    return values.some(value => itemValues.includes(value));
-  });
-}
-
-function setSelectToItem(selectId, item, nameKeys = ['name']) {
-  const select = document.getElementById(selectId);
-  if (!select || !item) return false;
-
-  const itemId = item._id || item.id || item.schoolId;
-  const itemName = nameKeys.map(key => item[key]).find(Boolean);
-
-  const option = Array.from(select.options).find(option =>
-    normalizeQueryValue(option.value) === normalizeQueryValue(itemId) ||
-    normalizeQueryValue(option.textContent) === normalizeQueryValue(itemName) ||
-    normalizeQueryValue(option.dataset.termName) === normalizeQueryValue(itemName) ||
-    normalizeQueryValue(option.dataset.className) === normalizeQueryValue(itemName)
-  );
-
-  if (!option) return false;
-  select.value = option.value;
-  return true;
-}
-
-async function prefillVerificationFormFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-
-  const schoolId = params.get('schoolId');
-  const schoolName = params.get('schoolName');
-  const regNo = params.get('regNo');
-  const sessionValue = params.get('session') || params.get('sessionId');
-  const termValue = params.get('term') || params.get('termName') || params.get('termId');
-  const classValue =
-    params.get('class') ||
-    params.get('className') ||
-    params.get('classLevel') ||
-    params.get('classLevelId');
-
-  if (schoolId || schoolName) {
-    const school = findMatchingItem(schools, [schoolId, schoolName]);
-
-    if (school) {
-      const schoolSelect = document.getElementById('schoolName');
-      schoolSelect.value = school._id || school.id;
-      updateSchoolInfo();
+    function normalizeQueryValue(value) {
+      return String(value || '').trim().toLowerCase();
     }
-  }
 
-  if (regNo) {
-    document.getElementById('regNo').value = regNo.trim();
-  }
+    function findMatchingItem(items, candidates) {
+      const values = candidates
+        .filter(value => value !== undefined && value !== null && String(value).trim())
+        .map(normalizeQueryValue);
 
-  if (sessionValue) {
-    const session = findMatchingItem(sessions, [sessionValue]);
+      return items.find(item => {
+        const itemValues = [
+          item._id,
+          item.id,
+          item.schoolId,
+          item.publicSchoolId,
+          item.code,
+          item.name,
+          item.schoolName
+        ]
+          .filter(value => value !== undefined && value !== null && String(value).trim())
+          .map(normalizeQueryValue);
 
-    if (session && setSelectToItem('session', session)) {
-      const sessionId = session._id || session.id;
-      await Promise.all([
-        loadTerms(sessionId),
-        loadClassLevels(sessionId)
-      ]);
-
-      if (termValue) {
-        const term = findMatchingItem(terms, [termValue]);
-        if (term) setSelectToItem('term', term);
-      }
-
-      if (classValue) {
-        const classLevel = findMatchingItem(classLevels, [classValue]);
-        if (classLevel) setSelectToItem('classLevel', classLevel);
-      }
+        return values.some(value => itemValues.includes(value));
+      });
     }
-  }
 
-  const purpose = params.get('verificationPurpose');
-  if (purpose) {
-    const purposeSelect = document.getElementById('verificationPurpose');
-    if (purposeSelect) {
-      const option = Array.from(purposeSelect.options).find(item =>
-        normalizeQueryValue(item.value) === normalizeQueryValue(purpose) ||
-        normalizeQueryValue(item.textContent) === normalizeQueryValue(purpose)
+    function setSelectToItem(selectId, item, nameKeys = ['name']) {
+      const select = document.getElementById(selectId);
+      if (!select || !item) return false;
+
+      const itemId = item._id || item.id || item.schoolId;
+      const itemName = nameKeys.map(key => item[key]).find(Boolean);
+
+      const option = Array.from(select.options).find(option =>
+        normalizeQueryValue(option.value) === normalizeQueryValue(itemId) ||
+        normalizeQueryValue(option.textContent) === normalizeQueryValue(itemName) ||
+        normalizeQueryValue(option.dataset.termName) === normalizeQueryValue(itemName) ||
+        normalizeQueryValue(option.dataset.className) === normalizeQueryValue(itemName)
       );
-      if (option) purposeSelect.value = option.value;
+
+      if (!option) return false;
+      select.value = option.value;
+      return true;
     }
-  }
 
-  const institutionName = params.get('institutionName');
-  if (institutionName) {
-    document.getElementById('institutionName').value = institutionName;
-  }
-}
-async function loadSessions() {
-  sessions = [
-    { id: '2025-2026', name: '2025-2026' }
-  ];
+    async function prefillVerificationFormFromUrl() {
+      const params = new URLSearchParams(window.location.search);
 
-  const sessionSelect = document.getElementById('session');
-  if (!sessionSelect) return;
+      const schoolId = params.get('schoolId');
+      const schoolName = params.get('schoolName');
+      const regNo = params.get('regNo');
+      const sessionValue = params.get('session') || params.get('sessionId');
+      const termValue = params.get('term') || params.get('termName') || params.get('termId');
+      const classValue =
+        params.get('class') ||
+        params.get('className') ||
+        params.get('classLevel') ||
+        params.get('classLevelId');
 
-  while (sessionSelect.options.length > 1) {
-    sessionSelect.remove(1);
-  }
+      const schoolSelect = document.getElementById('schoolName');
 
-  sessions.forEach(session => {
-    const option = document.createElement('option');
-    option.value = session.id;
-    option.textContent = session.name;
-    sessionSelect.appendChild(option);
-  });
-}
+      if (schoolId || schoolName) {
+        const school = findMatchingItem(schools, [schoolId, schoolName]);
 
-async function loadTerms(sessionId) {
-  if (!sessionId) {
-    terms = [];
-    populateTermDropdown();
-    return;
-  }
+        if (school) {
+          const selectedSchoolId = school._id || school.id;
+          schoolSelect.value = selectedSchoolId;
+          updateSchoolInfo();
 
-  terms = [
-    { id: 'FIRST TERM', name: 'FIRST TERM' },
-    { id: 'SECOND TERM', name: 'SECOND TERM' },
-    { id: 'THIRD TERM', name: 'THIRD TERM' }
-  ];
+          await loadSessions(selectedSchoolId);
+        }
+      } else {
+        await loadSessions(schoolSelect.value);
+      }
 
-  populateTermDropdown();
-}
+      if (regNo) {
+        document.getElementById('regNo').value = regNo.trim();
+      }
+
+      if (sessionValue) {
+        const session = findMatchingItem(sessions, [sessionValue]);
+
+        if (session && setSelectToItem('session', session)) {
+          const selectedSessionId = session._id || session.id;
+          const selectedSchoolId = schoolSelect.value;
+
+          await Promise.all([
+            loadTerms(selectedSessionId, selectedSchoolId),
+            loadClassLevels(selectedSessionId, selectedSchoolId)
+          ]);
+
+          if (termValue) {
+            const term = findMatchingItem(terms, [termValue]);
+            if (term) setSelectToItem('term', term);
+          }
+
+          if (classValue) {
+            const classLevel = findMatchingItem(classLevels, [classValue]);
+            if (classLevel) setSelectToItem('classLevel', classLevel);
+          }
+        }
+      }
+
+      const purpose = params.get('verificationPurpose');
+      if (purpose) {
+        const purposeSelect = document.getElementById('verificationPurpose');
+        if (purposeSelect) {
+          const option = Array.from(purposeSelect.options).find(item =>
+            normalizeQueryValue(item.value) === normalizeQueryValue(purpose) ||
+            normalizeQueryValue(item.textContent) === normalizeQueryValue(purpose)
+          );
+          if (option) purposeSelect.value = option.value;
+        }
+      }
+
+      const institutionName = params.get('institutionName');
+      if (institutionName) {
+        document.getElementById('institutionName').value = institutionName;
+      }
+    }
+
+    function clearSessionTermClassSelections() {
+      const sessionSelect = document.getElementById('session');
+      const termSelect = document.getElementById('term');
+      const classSelect = document.getElementById('classLevel');
+
+      if (sessionSelect) {
+        while (sessionSelect.options.length > 1) {
+          sessionSelect.remove(1);
+        }
+        sessionSelect.value = '';
+      }
+
+      if (termSelect) {
+        while (termSelect.options.length > 1) {
+          termSelect.remove(1);
+        }
+        termSelect.value = '';
+      }
+
+      if (classSelect) {
+        while (classSelect.options.length > 1) {
+          classSelect.remove(1);
+        }
+        classSelect.value = '';
+      }
+
+      sessions = [];
+      terms = [];
+      classLevels = [];
+    }
+
+    async function loadSessions(schoolId) {
+      const requestId = ++sessionsRequestId;
+      const sessionSelect = document.getElementById('session');
+
+      clearSessionTermClassSelections();
+
+      if (!schoolId) return;
+
+      try {
+        const params = new URLSearchParams();
+        params.set('schoolId', schoolId);
+
+        const response = await fetch(`${API_BASE_URL}/api/academics/sessions?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('Sessions API Response:', response.status, response.statusText);
+          throw new Error(`Failed to load sessions: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+
+        if (requestId !== sessionsRequestId) return;
+
+        let sessionsList = [];
+
+        if (Array.isArray(responseData)) {
+          sessionsList = responseData;
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          sessionsList = responseData.data;
+        } else if (responseData.sessions && Array.isArray(responseData.sessions)) {
+          sessionsList = responseData.sessions;
+        }
+
+        sessions = sessionsList;
+
+        if (!sessionSelect) {
+          console.error('Session select element not found');
+          return;
+        }
+
+        if (sessionsList.length === 0) {
+          console.warn('No sessions returned from API for this school');
+          return;
+        }
+
+        sessionsList.forEach(session => {
+          const option = document.createElement('option');
+          option.value = session._id || session.id;
+          option.textContent = session.name;
+          sessionSelect.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error('Error loading sessions:', error);
+        showAlert('warning', 'Could not load sessions for this school. Please contact support.');
+      }
+    }
+
+    async function loadTerms(sessionId, schoolId) {
+      const requestId = ++termsRequestId;
+      const termSelect = document.getElementById('term');
+
+      terms = [];
+      if (termSelect) {
+        while (termSelect.options.length > 1) {
+          termSelect.remove(1);
+        }
+        termSelect.value = '';
+      }
+
+      if (!sessionId || !schoolId) {
+        populateTermDropdown();
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams();
+        params.set('schoolId', schoolId);
+        params.set('sessionId', sessionId);
+
+        const response = await fetch(`${API_BASE_URL}/api/academics/terms?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('Terms API Response:', response.status, response.statusText);
+          throw new Error(`Failed to load terms: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+
+        if (requestId !== termsRequestId) return;
+
+        let termsList = [];
+
+        if (Array.isArray(responseData)) {
+          termsList = responseData;
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          termsList = responseData.data;
+        } else if (responseData.terms && Array.isArray(responseData.terms)) {
+          termsList = responseData.terms;
+        }
+
+        terms = termsList;
+        populateTermDropdown();
+
+      } catch (error) {
+        console.error('Error loading terms:', error);
+        showAlert('warning', 'Could not load terms for this school and session. Please contact support.');
+      }
+    }
 
     function populateTermDropdown() {
       const termSelect = document.getElementById('term');
@@ -282,25 +418,29 @@ async function loadTerms(sessionId) {
       
       terms.forEach(term => {
         const option = document.createElement('option');
-        // Store the term ID as value (for reference), but we'll extract the name when submitting
         option.value = term._id || term.id;
         option.textContent = term.name;
-        option.dataset.termName = term.name; // Store term name in data attribute
+        option.dataset.termName = term.name;
         termSelect.appendChild(option);
-        console.log('Added term option:', term.name);
       });
     }
 
-    async function loadClassLevels(sessionId) {
+    async function loadClassLevels(sessionId, schoolId) {
       try {
         if (!sessionId) {
-          // Clear class levels if no session selected
           classLevels = [];
           populateClassLevelDropdown();
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/api/academics/class-levels?sessionId=${sessionId}`, {
+        const params = new URLSearchParams();
+        params.set('sessionId', sessionId);
+
+        if (schoolId) {
+          params.set('schoolId', schoolId);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/academics/class-levels?${params.toString()}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -313,9 +453,7 @@ async function loadTerms(sessionId) {
         }
         
         const responseData = await response.json();
-        console.log('Class Levels Response:', responseData);
         
-        // Extract class levels array from the response
         let classLevelsList = [];
         
         if (Array.isArray(responseData)) {
@@ -325,8 +463,6 @@ async function loadTerms(sessionId) {
         } else if (responseData.classLevels && Array.isArray(responseData.classLevels)) {
           classLevelsList = responseData.classLevels;
         }
-        
-        console.log('Parsed Class Levels:', classLevelsList);
         
         classLevels = classLevelsList;
         populateClassLevelDropdown();
@@ -354,9 +490,8 @@ async function loadTerms(sessionId) {
         const option = document.createElement('option');
         option.value = classLevel._id || classLevel.id;
         option.textContent = classLevel.name;
-        option.dataset.className = classLevel.name; // Store class name in data attribute
+        option.dataset.className = classLevel.name;
         classSelect.appendChild(option);
-        console.log('Added class level option:', classLevel.name);
       });
     }
 
@@ -394,19 +529,18 @@ async function loadTerms(sessionId) {
       if (!validateForm()) {
         return;
       }
-document.querySelector('.two-column').classList.remove('report-visible');
+
+      document.querySelector('.two-column').classList.remove('report-visible');
 
       const schoolId = document.getElementById('schoolName').value;
       const regNo = document.getElementById('regNo').value.trim();
       const scratchCard = document.getElementById('scratchCard').value.trim();
       const sessionId = document.getElementById('session').value;
       
-      // Get term name from the selected option's data attribute
       const termSelect = document.getElementById('term');
       const termOption = termSelect.options[termSelect.selectedIndex];
       const termName = termOption.dataset.termName || termOption.text;
-      
-      // Get class name from the selected option's data attribute
+
       const classSelect = document.getElementById('classLevel');
       const classOption = classSelect.options[classSelect.selectedIndex];
       const className = classOption.dataset.className || classOption.text;
@@ -430,8 +564,8 @@ document.querySelector('.two-column').classList.remove('report-visible');
             regNo,
             scratchCard,
             sessionId,
-            termName, // Send term name instead of ID
-            className, // Send class name instead of ID
+            termName,
+            className,
             verificationPurpose,
             institutionName
           })
@@ -444,10 +578,8 @@ document.querySelector('.two-column').classList.remove('report-visible');
           displayReport(currentReport);
           showAlert('success', `Report for ${currentReport.studentName} verified successfully!`);
           
-          // Add to history
           addToHistory(currentReport);
           
-          // Scroll to report
           setTimeout(() => {
             document.getElementById('reportCard').scrollIntoView({ behavior: 'smooth' });
           }, 300);
@@ -486,30 +618,25 @@ document.querySelector('.two-column').classList.remove('report-visible');
     }
 
     // ============ DISPLAY REPORT ============
-    // ============ DISPLAY REPORT ============
     function displayReport(data) {
-       document.querySelector('.two-column').classList.add('report-visible');
-  
-  document.getElementById('reportEmpty').style.display = 'none';
-  document.getElementById('reportCard').style.display = 'block';
+      document.querySelector('.two-column').classList.add('report-visible');
 
-      // Convert string values to numbers
+      document.getElementById('reportEmpty').style.display = 'none';
+      document.getElementById('reportCard').style.display = 'block';
+
       const totalScore = parseFloat(data.totalScore) || 0;
       const averageScore = parseFloat(data.averageScore) || 0;
 
-      // Header
       document.getElementById('reportStudentName').textContent = data.studentName;
       document.getElementById('reportRegNo').textContent = `REG: ${data.regNo}`;
       document.getElementById('reportSchoolName').textContent = `School: ${data.school.name}`;
       document.getElementById('reportYear').textContent = `Session: ${data.session.name}`;
 
-      // Summary
       document.getElementById('reportTerm').textContent = data.term.name;
       document.getElementById('reportClass').textContent = data.classLevel.name;
       document.getElementById('reportTotalScore').textContent = totalScore.toFixed(2);
       document.getElementById('reportAverageScore').textContent = averageScore.toFixed(2);
       
-      // Calculate highest score from subjects
       let highestScore = 0;
       if (data.subjects && data.subjects.length > 0) {
         highestScore = Math.max(...data.subjects.map(s => parseFloat(s.total) || 0));
@@ -520,7 +647,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
       gradeEl.textContent = data.overallGrade;
       gradeEl.className = `info-item-value grade grade-${data.overallGrade.toLowerCase()}`;
 
-      // Subjects
       const tableBody = document.getElementById('subjectsTableBody');
       tableBody.innerHTML = '';
       
@@ -543,13 +669,11 @@ document.querySelector('.two-column').classList.remove('report-visible');
             <td class="score">${exam}</td>
             <td class="score score-total">${total.toFixed(2)}</td>
             <td style="text-align: center;"><span class="grade-badge grade-${(subject.grade || 'f').toLowerCase()}">${subject.grade}</span></td>
-            
           `;
           tableBody.appendChild(row);
         });
       }
 
-      // Skills
       if (data.skills) {
         document.getElementById('skillsPunctuality').textContent = data.skills.punctuality || '-';
         document.getElementById('skillsObedience').textContent = data.skills.obedience || '-';
@@ -559,7 +683,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
         document.getElementById('skillsCooperation').textContent = data.skills.cooperation || '-';
       }
 
-      // Attendance
       if (data.attendance) {
         document.getElementById('attendancePresent').textContent = data.attendance.present || '-';
         document.getElementById('attendanceAbsent').textContent = data.attendance.absent || '-';
@@ -567,7 +690,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
         document.getElementById('attendanceRate').textContent = rate.toFixed(1) + '%';
       }
 
-      // Comments
       if (data.teacherComment) {
         document.getElementById('teacherComment').textContent = data.teacherComment.comment;
         document.getElementById('teacherName').innerHTML = `<strong>Teacher:</strong> ${data.teacherComment.teacherName}`;
@@ -578,7 +700,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
         document.getElementById('principalName').innerHTML = `<strong>Principal:</strong> ${data.principalRemark.principalName}`;
       }
 
-      // Verification Info
       document.getElementById('reportVerificationCode').textContent = data.verificationCode;
       document.getElementById('reportIssueDate').textContent = new Date(data.issueDate).toLocaleDateString();
     }
@@ -672,7 +793,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
         if (response.ok) {
           const messagesContainer = document.getElementById('chatMessages');
           
-          // Add user message
           const userMsg = document.createElement('div');
           userMsg.className = 'chat-message user';
           userMsg.innerHTML = `
@@ -703,7 +823,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
 
         const responseData = await response.json();
         
-        // Extract tickets array from the response wrapper
         const tickets = responseData.data || responseData.tickets || [];
         const ticketsContainer = document.getElementById('ticketsContainer');
         
@@ -775,7 +894,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
 
         const responseData = await response.json();
         
-        // Extract schools list from the response wrapper
         const schoolsList = responseData.data || responseData.schools || [];
         const container = document.getElementById('schoolsContactList');
 
@@ -816,7 +934,6 @@ document.querySelector('.two-column').classList.remove('report-visible');
         if (response.ok) {
           const responseData = await response.json();
           
-          // Extract settings from the response wrapper
           const settings = responseData.data || responseData.settings || responseData;
           
           document.getElementById('settingsInstitution').value = settings.institutionName || '';
